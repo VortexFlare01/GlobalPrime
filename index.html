@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalPrime | High-End Digital Production</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg-pure: #000000;
+            --accent: #ffffff;
+            --glass: rgba(255, 255, 255, 0.02);
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-pure);
+            color: #fff;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            overscroll-behavior: none;
+        }
+
+        #cursor-dot {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10001;
+        }
+
+        #cursor-ring {
+            position: fixed;
+            width: 34px;
+            height: 34px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        #sky-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+        }
+
+        .hero-title {
+            font-weight: 900;
+            letter-spacing: -0.06em;
+            line-height: 0.85;
+            text-transform: uppercase;
+            font-size: clamp(3rem, 14vw, 12rem);
+        }
+
+        .responsive-headline {
+            font-size: clamp(1.5rem, 5vw, 4rem);
+            line-height: 1.1;
+            word-wrap: break-word;
+        }
+
+        .premium-card {
+            position: relative;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 2.5rem;
+            backdrop-filter: blur(10px);
+            transition: border-color 0.5s cubic-bezier(0.23, 1, 0.32, 1),
+            transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            overflow: hidden;
+        }
+
+        .premium-card:hover {
+            border-color: rgba(255,255,255,0.3);
+            transform: translateY(-8px);
+        }
+
+        .tag-hover {
+            transition: all 0.3s ease;
+        }
+
+        .tag-hover:hover {
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            transform: scale(1.05);
+            cursor: none;
+        }
+
+        @keyframes tech-reveal {
+            0% {
+                opacity: 0;
+                clip-path: inset(0 100% 0 0);
+                filter: blur(10px);
+            }
+            70% {
+                opacity: 0.8;
+                clip-path: inset(0 30% 0 0);
+                filter: blur(2px);
+            }
+            100% {
+                opacity: 1;
+                clip-path: inset(0 0 0 0);
+                filter: blur(0);
+            }
+        }
+
+        .tech-text {
+            opacity: 0;
+        }
+
+        .tech-text.is-visible {
+            animation: tech-reveal 1.2s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+        }
+
+        .image-reveal {
+            position: relative;
+            overflow: hidden;
+            border-radius: 2rem;
+            height: clamp(300px, 60vh, 600px);
+        }
+
+        .image-reveal img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%) brightness(0.6);
+            transition: filter 1s cubic-bezier(0.23, 1, 0.32, 1),
+            transform 1s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .image-reveal:hover img {
+            filter: grayscale(0%) brightness(0.8);
+            transform: scale(1.05);
+        }
+
+        .shiny {
+            background: linear-gradient(90deg, #444, #fff, #444);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shine 6s linear infinite;
+        }
+
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.6);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .social-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: white;
+            transform: scale(0);
+            transition: transform 0.4s ease;
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        .social-btn:hover::before {
+            transform: scale(1);
+        }
+
+        .social-btn:hover {
+            color: black;
+            border-color: white;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; }
+
+        .horizontal-section {
+            width: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+
+<canvas id="sky-canvas"></canvas>
+
+<section class="min-h-screen flex flex-col justify-center items-center px-6 relative overflow-hidden" id="hero">
+    <div id="hero-bg-text" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[35vw] font-black text-white/[0.01] pointer-events-none uppercase select-none">Future</div>
+
+    <div id="hero-logo-container" class="mb-8">
+        <img src="https://i.ibb.co/GfvZ4yxs/logo.jpg" alt="Logo" class="w-24 h-24 md:w-32 md:h-32 rounded-full border border-white/10 p-1.5 shadow-2xl bg-black/40 object-cover">
+    </div>
+
+    <h1 id="hero-title" class="hero-title text-center mb-8">
+        Global<br><span class="text-transparent" style="-webkit-text-stroke: 1px rgba(255,255,255,0.5);">Prime</span>
+    </h1>
+
+    <p class="text-white/40 tracking-[0.8em] uppercase text-[10px] mb-12 text-center max-w-full px-4">GlobalPrime Studio &mdash; Art of Automation</p>
+
+    <div class="scroll-indicator w-px h-20 bg-gradient-to-b from-white to-transparent opacity-40"></div>
+</section>
+
+<section class="py-20 px-6 max-w-7xl mx-auto space-y-10">
+    <div class="image-reveal" id="skyscrapers-block">
+        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2070" alt="Office Space">
+        <div class="absolute inset-0 flex flex-col justify-end p-8 md:p-12 bg-gradient-to-t from-black via-transparent to-transparent">
+            <p class="text-[9px] md:text-xs uppercase tracking-[0.5em] mb-4">Architecture of Web</p>
+            <h2 class="text-3xl md:text-7xl font-black uppercase">Масштабируемые<br>решения</h2>
+        </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-10">
+        <div class="image-reveal h-[400px] md:h-[500px]">
+            <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=2070" alt="Technology">
+            <div class="absolute inset-0 p-8 md:p-10 flex flex-col justify-end bg-gradient-to-t from-black/80 to-transparent">
+                <p class="text-[9px] uppercase tracking-[0.4em] text-white/50 mb-2">Exclusive Content</p>
+                <h3 class="text-2xl md:text-3xl font-black uppercase">Visual Edge</h3>
+            </div>
+        </div>
+        <div class="image-reveal h-[400px] md:h-[500px]">
+            <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=2070" alt="Digital Flow">
+            <div class="absolute inset-0 p-8 md:p-10 flex flex-col justify-end bg-gradient-to-t from-black/80 to-transparent">
+                <p class="text-[9px] uppercase tracking-[0.4em] text-white/50 mb-2">Urban Dynamics</p>
+                <h3 class="text-2xl md:text-3xl font-black uppercase">Modern Flow</h3>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="about" class="py-40 px-6 max-w-7xl mx-auto overflow-hidden">
+    <div class="grid md:grid-cols-2 gap-20 items-center">
+        <div class="relative about-content">
+            <div class="text-[12vw] font-black text-white/[0.03] absolute -top-20 -left-10 select-none">01</div>
+
+            <h2 id="vortex-title" class="tech-text text-5xl md:text-8xl font-black mb-10 leading-tight uppercase">Vortex<br>Flare</h2>
+
+            <div class="w-24 h-1 bg-white mb-10"></div>
+            <p class="text-gray-400 text-lg md:text-xl font-light leading-relaxed mb-8">
+                Меня зовут <span class="text-white font-bold">Timur</span>. В эпоху информационного шума я создаю тишину через идеальный UX и автоматизацию.
+            </p>
+            <div class="flex flex-wrap gap-4">
+                <div class="bg-white/5 border border-white/10 px-6 py-3 rounded-full text-[10px] uppercase font-bold tracking-widest tag-hover">Architect</div>
+                <div class="bg-white/5 border border-white/10 px-6 py-3 rounded-full text-[10px] uppercase font-bold tracking-widest tag-hover">Developer</div>
+            </div>
+        </div>
+        <div class="grid gap-6">
+            <div class="premium-card p-8 md:p-12">
+                <h3 class="text-2xl md:text-3xl font-black mb-6 uppercase">Интеллект</h3>
+                <p class="text-gray-500 font-light text-base md:text-lg">Создаю ботов, которые не просто отвечают, а решают задачи бизнеса 24/7 без участия человека.</p>
+            </div>
+            <div class="premium-card p-8 md:p-12">
+                <h3 class="text-2xl md:text-3xl font-black mb-6 uppercase">Эстетика</h3>
+                <p class="text-gray-500 font-light text-base md:text-lg">Сайты, которые выглядят как цифровое искусство и работают как швейцарские часы.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="vision" class="py-20 px-6">
+    <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-stretch">
+        <div class="image-reveal h-[300px] md:h-auto">
+            <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=2070" alt="Workplace">
+        </div>
+        <div class="premium-card p-8 md:p-16 flex flex-col justify-center">
+            <p class="text-white/30 uppercase tracking-[0.4em] text-[10px] mb-8">The Philosophy</p>
+            <h2 class="responsive-headline font-black mb-8 uppercase">Премиальность в каждой строке кода</h2>
+            <p class="text-gray-400 text-base md:text-lg font-light leading-relaxed">
+                Я верю, что бизнес заслуживает лучшего визуального воплощения. Мои продукты — это не просто код, это статус вашего бренда.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="py-40 horizontal-section">
+    <div id="horizontal-trigger" class="px-6 max-w-7xl mx-auto mb-20">
+        <h2 class="tech-text text-6xl md:text-[10vw] font-black uppercase leading-none">Global<br><span class="text-white/10">Vision</span></h2>
+    </div>
+
+    <div class="flex gap-10 px-6 md:px-20" id="horizontal-scroll">
+        <div class="min-w-[280px] md:min-w-[600px] h-[350px] md:h-[400px] rounded-3xl overflow-hidden border border-white/10 grayscale hover:grayscale-0 transition-all duration-1000">
+            <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80&w=2070" class="w-full h-full object-cover">
+        </div>
+        <div class="min-w-[280px] md:min-w-[600px] h-[350px] md:h-[400px] rounded-3xl overflow-hidden border border-white/10 grayscale hover:grayscale-0 transition-all duration-1000">
+            <img src="https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&q=80&w=2070" class="w-full h-full object-cover">
+        </div>
+        <div class="min-w-[280px] md:min-w-[600px] h-[350px] md:h-[400px] rounded-3xl overflow-hidden border border-white/10 grayscale hover:grayscale-0 transition-all duration-1000">
+            <img src="https://images.unsplash.com/photo-1444723121867-7a241cacace9?auto=format&fit=crop&q=80&w=2070" class="w-full h-full object-cover">
+        </div>
+    </div>
+</section>
+
+<section id="contact" class="py-40 md:py-60 px-6 text-center bg-white/[0.01]">
+    <div class="max-w-4xl mx-auto">
+        <p class="text-white/20 uppercase tracking-[1em] text-[10px] mb-12">Start your journey</p>
+        <h2 class="tech-text text-4xl md:text-9xl font-black mb-20 leading-none">ГОТОВЫ К<br><span class="text-transparent" style="-webkit-text-stroke: 1px #fff;">ПРОРЫВУ?</span></h2>
+
+        <div class="flex flex-col md:flex-row gap-6 justify-center mb-16">
+            <button id="magnetic-btn" class="bg-white text-black px-8 md:px-12 py-5 md:py-6 rounded-full font-black uppercase tracking-widest text-xs md:text-sm transition-all">
+                Написать в Telegram
+            </button>
+            <a href="#" class="border border-white/20 px-8 md:px-12 py-5 md:py-6 rounded-full font-black uppercase tracking-widest text-xs md:text-sm hover:bg-white/5 transition-colors">Портфолио PDF</a>
+        </div>
+
+        <div class="flex justify-center gap-6">
+            <a href="https://www.youtube.com/@V-X-F-07" target="_blank" rel="noopener noreferrer" class="social-btn" title="YouTube">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/>
+                    <path d="m10 15 5-3-5-3z"/>
+                </svg>
+            </a>
+            <a href="https://www.instagram.com/cloudsafer_07/" target="_blank" rel="noopener noreferrer" class="social-btn" title="Telegram">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m22 2-7 20-4-9-9-4Z"/>
+                    <path d="M22 2 11 13"/>
+                </svg>
+            </a>
+            <a href="https://www.instagram.com/cloudsafer_07/" target="_blank" rel="noopener noreferrer" class="social-btn" title="TikTok">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/>
+                </svg>
+            </a>
+            <a href="https://www.instagram.com/cloudsafer_07/" target="_blank" rel="noopener noreferrer" class="social-btn" title="Instagram">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+</section>
+
+<footer class="py-20 px-6 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
+        <div class="flex items-center gap-4">
+            <img src="https://i.ibb.co/GfvZ4yxs/logo.jpg" class="w-10 h-10 rounded-full object-cover">
+            <span class="text-sm font-black tracking-[0.3em] uppercase">GlobalPrime</span>
+        </div>
+
+        <div class="flex gap-4">
+            <a href="https://www.youtube.com/@V-X-F-07" target="_blank" rel="noopener noreferrer" class="social-btn w-10 h-10" title="YouTube">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>
+            </a>
+            <a href="https://www.instagram.com/cloudsafer_07/" target="_blank" rel="noopener noreferrer" class="social-btn w-10 h-10" title="Telegram">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+            </a>
+            <a href="https://www.instagram.com/cloudsafer_07/" target="_blank" rel="noopener noreferrer" class="social-btn w-10 h-10" title="TikTok">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+            </a>
+            <a href="https://www.instagram.com/cloudsafer_07/" target="_blank" rel="noopener noreferrer" class="social-btn w-10 h-10" title="Instagram">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+            </a>
+        </div>
+
+        <div class="text-center md:text-right">
+            <p class="text-white/30 text-[10px] uppercase tracking-widest mb-2">Created by VortexFlare</p>
+            <p class="text-white/10 text-[9px] uppercase tracking-widest">© 2026 все права защищены. </p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    lucide.createIcons();
+    gsap.registerPlugin(ScrollTrigger);
+
+    const techTexts = document.querySelectorAll('.tech-text');
+    techTexts.forEach(text => {
+        ScrollTrigger.create({
+            trigger: text,
+            start: "top 85%",
+            toggleActions: "play none none reset",
+            onEnter: () => text.classList.add('is-visible'),
+            onLeaveBack: () => text.classList.remove('is-visible')
+        });
+    });
+
+    const dot = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    let mouseX = 0, mouseY = 0;
+    let ringX = 0, ringY = 0;
+    let mouseMoved = false;
+
+    window.addEventListener('mousemove', e => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        mouseMoved = true;
+    }, { passive: true });
+
+    function updateCursor() {
+        if (mouseMoved) {
+            dot.style.transform = `translate3d(${mouseX - 3}px, ${mouseY - 3}px, 0)`;
+
+            const visibleCards = document.querySelectorAll('.premium-card');
+            visibleCards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    card.style.setProperty('--mx', `${mouseX - rect.left}px`);
+                    card.style.setProperty('--my', `${mouseY - rect.top}px`);
+                }
+            });
+            mouseMoved = false;
+        }
+
+        ringX += (mouseX - ringX - 17) * 0.12;
+        ringY += (mouseY - ringY - 17) * 0.12;
+        ring.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
+
+        requestAnimationFrame(updateCursor);
+    }
+    updateCursor();
+
+    const canvas = document.getElementById('sky-canvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    let width, height;
+    let stars = [];
+    let shadows = [];
+
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        initStars();
+        initShadows();
+    }
+
+    function initStars() {
+        stars = [];
+        for(let i = 0; i < 100; i++) {
+            stars.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                size: Math.random() * 1.5,
+                opacity: Math.random(),
+                blink: 0.003 + Math.random() * 0.007
+            });
+        }
+    }
+
+    function initShadows() {
+        shadows = [];
+        for(let i = 0; i < 5; i++) {
+            shadows.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                r: 200 + Math.random() * 400,
+                vx: (Math.random() - 0.5) * 0.2,
+                vy: (Math.random() - 0.5) * 0.2
+            });
+        }
+    }
+
+    function drawShadows() {
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-over';
+        shadows.forEach(s => {
+            s.x += s.vx;
+            s.y += s.vy;
+            if(s.x < -s.r) s.x = width + s.r;
+            if(s.x > width + s.r) s.x = -s.r;
+            if(s.y < -s.r) s.y = height + s.r;
+            if(s.y > height + s.r) s.y = -s.r;
+
+            const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r);
+            g.addColorStop(0, 'rgba(20, 20, 25, 0.4)');
+            g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, width, height);
+        });
+        ctx.restore();
+    }
+
+    function drawSearchlight(x, offset) {
+        const time = Date.now() * 0.0004;
+        const angle = -Math.PI/2 + Math.sin(time + offset) * 0.2;
+
+        const dx = mouseX - x;
+        const dy = mouseY - height;
+        const mAngle = Math.atan2(dy, dx);
+        const finalAngle = angle + (mAngle - angle) * 0.015;
+
+        const length = height * 1.8;
+        const endX = x + Math.cos(finalAngle) * length;
+        const endY = height + Math.sin(finalAngle) * length;
+
+        const grad = ctx.createLinearGradient(x, height, endX, endY);
+        grad.addColorStop(0, 'rgba(255, 255, 255, 0.06)');
+        grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+        ctx.beginPath();
+        ctx.moveTo(x, height);
+        ctx.lineTo(endX - 180, endY);
+        ctx.lineTo(endX + 180, endY);
+        ctx.fillStyle = grad;
+        ctx.fill();
+    }
+
+    function animateCanvas() {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, width, height);
+
+        drawShadows();
+
+        ctx.fillStyle = '#fff';
+        for (let i = 0; i < stars.length; i++) {
+            const s = stars[i];
+            s.opacity += s.blink;
+            if(s.opacity > 1 || s.opacity < 0.2) s.blink *= -1;
+            ctx.globalAlpha = Math.max(0, s.opacity);
+            ctx.fillRect(s.x, s.y, s.size, s.size);
+        }
+        ctx.globalAlpha = 1;
+
+        drawSearchlight(width * 0.15, 0);
+        drawSearchlight(width * 0.5, 2.5);
+        drawSearchlight(width * 0.85, 5);
+
+        requestAnimationFrame(animateCanvas);
+    }
+
+    gsap.to("#hero-title", {
+        scrollTrigger: { trigger: "#hero", start: "top top", end: "bottom top", scrub: 1 },
+        y: 150, opacity: 0
+    });
+
+    gsap.to("#hero-bg-text", {
+        scrollTrigger: { trigger: "#hero", start: "top top", end: "bottom top", scrub: 1 },
+        x: -150
+    });
+
+    gsap.to("#horizontal-scroll", {
+        scrollTrigger: {
+            trigger: ".horizontal-section",
+            start: "top bottom",
+            end: "bottom top",
+            scrub: 1.5
+        },
+        x: -250
+    });
+
+    const revealItems = gsap.utils.toArray(".premium-card, .image-reveal, .about-content");
+    revealItems.forEach(el => {
+        gsap.from(el, {
+            scrollTrigger: {
+                trigger: el,
+                start: "top 95%",
+                toggleActions: "play none none reset"
+            },
+            opacity: 0,
+            y: 40,
+            duration: 1.2,
+            ease: "power3.out"
+        });
+    });
+
+    const mBtn = document.getElementById('magnetic-btn');
+    mBtn.addEventListener('mousemove', e => {
+        const r = mBtn.getBoundingClientRect();
+        gsap.to(mBtn, {
+            x: (e.clientX - r.left - r.width/2) * 0.4,
+            y: (e.clientY - r.top - r.height/2) * 0.4,
+            duration: 0.4,
+            ease: "power2.out"
+        });
+    });
+
+    mBtn.addEventListener('mouseleave', () => {
+        gsap.to(mBtn, {
+            x: 0,
+            y: 0,
+            duration: 0.8,
+            ease: "elastic.out(1, 0.4)"
+        });
+    });
+
+    window.addEventListener('resize', () => {
+        resize();
+    }, { passive: true });
+
+    resize();
+    animateCanvas();
+</script>
+</body>
+</html>
